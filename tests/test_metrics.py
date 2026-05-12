@@ -136,7 +136,7 @@ def test_classification_endurance():
 
 
 def test_classification_real_sample():
-    """Test sul sample workout v2 reale."""
+    """Test sul sample workout reale."""
     sample_path = ROOT / "tests" / "sample_workout_v2.json"
     data = json.loads(sample_path.read_text())
     tiz = data["laps_summary"]["time_in_zone_sec"]
@@ -147,5 +147,8 @@ def test_classification_real_sample():
         total_time_sec=total,
         strava_type=data["raw"]["strava"]["type"],
     )
-    # Il sample ha 60s di VO2 → dovrebbe essere classificato vo2max o threshold
-    assert result["type"] in ("vo2max_intervals", "threshold", "mixed")
+    # Il sample è dominato da zona tempo (35%) con poco VO2 (1.7%, sotto soglia).
+    # È un classico "progressive zones climb" — tempo prevalente, picchi VO2 occasionali.
+    assert result["type"] == "tempo"
+    assert result["primary_system"] == "tempo"
+    assert 0 <= result["confidence"] <= 1
