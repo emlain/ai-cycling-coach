@@ -1,9 +1,21 @@
 {
-  "schema_version": "daily-v2-coachready",
+  "schema_version": "daily-v3-coachready",
   "generated_utc": "2026-05-07T16:17:47.201745+00:00",
   "date": "2026-04-29",
   "activity_id": "18302280862",
   "source_blob": "aggregator/20260429_master_18302280862.json",
+  "athlete_context": {
+    "ftp_used": 258.0,
+    "weight_kg": null,
+    "age": null
+  },
+  "data_quality": {
+    "has_power": true,
+    "has_hr": true,
+    "has_stream": false,
+    "has_wellness": false,
+    "indoor": true
+  },
   "raw": {
     "strava": {
       "id": 18302280862,
