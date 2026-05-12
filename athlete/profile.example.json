@@ -1,0 +1,51 @@
+{
+  "_comment": "EXAMPLE — copy to profile.json (gitignored) and replace with your real data",
+  "athlete_id": "example-athlete",
+  "birth_date": "1985-09-18",
+  "weight_kg": 72,
+  "height_cm": 178,
+  "ftp_history": [
+    {"date": "2026-04-01", "ftp_watts": 255, "source": "intervals_eftp"},
+    {"date": "2026-04-29", "ftp_watts": 258, "source": "intervals_eftp"}
+  ],
+  "max_hr": 190,
+  "resting_hr_baseline": 48,
+  "hr_zones": [
+    {"name": "Z1", "min_bpm": 0,   "max_bpm": 130},
+    {"name": "Z2", "min_bpm": 130, "max_bpm": 150},
+    {"name": "Z3", "min_bpm": 150, "max_bpm": 165},
+    {"name": "Z4", "min_bpm": 165, "max_bpm": 178},
+    {"name": "Z5", "min_bpm": 178, "max_bpm": 190}
+  ],
+  "power_zones_pct_ftp": {
+    "recovery":  [0,   55],
+    "endurance": [55,  75],
+    "tempo":     [75,  90],
+    "sweetspot": [88,  94],
+    "threshold": [94,  105],
+    "vo2":       [105, 120],
+    "anaerobic": [120, 150],
+    "sprint":    [150, 999]
+  },
+  "goals": [
+    {"event_name": "Granfondo Example",
+     "event_date": "2026-08-15",
+     "priority": "A",
+     "type": "granfondo",
+     "distance_km": 150,
+     "elevation_m": 3000}
+  ],
+  "bikes": [
+    {"id": "indoor", "name": "Indoor trainer", "usage": "indoor"},
+    {"id": "road",   "name": "Road bike",      "usage": "outdoor"}
+  ],
+  "training_constraints": {
+    "weekly_hours_target": 8,
+    "available_days": ["mon","tue","wed","thu","fri","sat","sun"],
+    "preferred_long_ride_day": "sun"
+  },
+  "background": {
+    "previous_career": "Ex agonista 14-20 anni, rientro a 36 anni",
+    "current_level": "Amateur competitive"
+  }
+}
