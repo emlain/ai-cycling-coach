@@ -27,12 +27,12 @@ class StravaRaw(BaseModel):
 
 
 class IntervalsRaw(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
     date: date
     fitness: float = 0.0
     fatigue: float = 0.0
     eftp: float | None = None
-    pMax: float | None = None
+    p_max: float | None = Field(default=None, alias="pMax")
     hrv_raw: float = 0.0
     resting_hr_raw: float = 0.0
     sleep_hours_raw: float = 0.0

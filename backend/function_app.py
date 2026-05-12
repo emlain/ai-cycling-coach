@@ -10,14 +10,13 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import unquote, urlparse
 
 import azure.functions as func
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
-
 from shared import metrics, stream_loader, workout_classifier
 
 # =========================
@@ -68,7 +67,7 @@ def _safe_int(x: Any) -> int | None:
 
 
 def _now_utc_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _zone_from_relftp(relftp: float | None) -> str:
@@ -225,7 +224,7 @@ def compute_metrics_from_eventgrid(event: func.EventGridEvent) -> None:
     if not day and strava.get("date"):
         day = strava["date"][:10]
     if not day:
-        day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        day = datetime.now(UTC).strftime("%Y-%m-%d")
 
     # 2) Try to load stream
     stream = stream_loader.try_load_stream(bsc, STREAMS_CONTAINER, activity_id)

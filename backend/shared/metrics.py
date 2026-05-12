@@ -128,7 +128,7 @@ def compute_decoupling_pct(
     def avg_ratio(ws: Sequence, hrs: Sequence) -> float | None:
         valid_w: list[float] = []
         valid_hr: list[float] = []
-        for w, h in zip(ws, hrs):
+        for w, h in zip(ws, hrs, strict=False):
             if w is not None and h is not None and float(w) > 0 and float(h) > 0:
                 valid_w.append(float(w))
                 valid_hr.append(float(h))
