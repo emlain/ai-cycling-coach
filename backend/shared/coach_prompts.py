@@ -3,6 +3,7 @@
 Prompts are written in Italian because the end user is Italian.
 The coach persona is evidence-based, encouraging, technically rigorous.
 """
+
 from __future__ import annotations
 
 SYSTEM_PROMPT_COACH = """\

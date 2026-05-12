@@ -6,6 +6,7 @@ Algorithms follow standard references:
   - Decoupling (Pa:Hr): Friel, "The Cyclist's Training Bible"
   - TSS: Coggan formula
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -33,7 +34,7 @@ def compute_np(watts: Sequence[float | None] | None, window_sec: int = 30) -> fl
     for i in range(window_sec, len(cleaned)):
         window_sum += cleaned[i] - cleaned[i - window_sec]
         rolling.append(window_sum / window_sec)
-    fourth_powers = [r ** 4 for r in rolling if r > 0]
+    fourth_powers = [r**4 for r in rolling if r > 0]
     if not fourth_powers:
         return None
     return (sum(fourth_powers) / len(fourth_powers)) ** 0.25
@@ -46,7 +47,9 @@ def compute_if(np_watts: float | None, ftp_watts: float | None) -> float | None:
     return np_watts / ftp_watts
 
 
-def compute_tss(duration_sec: float | int, np_watts: float | None, ftp_watts: float | None) -> float | None:
+def compute_tss(
+    duration_sec: float | int, np_watts: float | None, ftp_watts: float | None
+) -> float | None:
     """TSS = (sec * NP * IF) / (FTP * 3600) * 100."""
     if not duration_sec or not np_watts or not ftp_watts or ftp_watts <= 0:
         return None
@@ -61,7 +64,9 @@ def compute_vi(np_watts: float | None, avg_watts: float | None) -> float | None:
     return np_watts / avg_watts
 
 
-def compute_work_kj(watts: Sequence[float | None] | None, time_sec: Sequence[float | None] | None = None) -> float | None:
+def compute_work_kj(
+    watts: Sequence[float | None] | None, time_sec: Sequence[float | None] | None = None
+) -> float | None:
     """Total work in kJ. Assume 1Hz sampling se time non disponibile."""
     cleaned = _clean(watts)
     if not cleaned:

@@ -1,11 +1,20 @@
 """Heuristic workout type classification based on time-in-zone and intervals."""
+
 from __future__ import annotations
 
 from typing import Literal
 
 WorkoutType = Literal[
-    "recovery", "endurance", "tempo", "sweetspot",
-    "threshold", "vo2max_intervals", "anaerobic", "race", "mixed", "unknown",
+    "recovery",
+    "endurance",
+    "tempo",
+    "sweetspot",
+    "threshold",
+    "vo2max_intervals",
+    "anaerobic",
+    "race",
+    "mixed",
+    "unknown",
 ]
 
 
@@ -27,8 +36,10 @@ def classify(
     """
     if not time_in_zone_sec or total_time_sec <= 0:
         return {
-            "type": "unknown", "primary_system": "unknown",
-            "structured": False, "confidence": 0.0,
+            "type": "unknown",
+            "primary_system": "unknown",
+            "structured": False,
+            "confidence": 0.0,
         }
 
     pct = {k: (v / total_time_sec) for k, v in time_in_zone_sec.items()}

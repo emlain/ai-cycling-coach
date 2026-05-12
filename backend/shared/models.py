@@ -1,4 +1,5 @@
 """Pydantic models for daily-v3-coachready schema."""
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -7,8 +8,14 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 Zone = Literal[
-    "recovery", "endurance", "tempo", "sweetspot",
-    "threshold", "vo2", "anaerobic", "sprint",
+    "recovery",
+    "endurance",
+    "tempo",
+    "sweetspot",
+    "threshold",
+    "vo2",
+    "anaerobic",
+    "sprint",
 ]
 
 
@@ -142,6 +149,7 @@ class WorkoutClassification(BaseModel):
 
 class WorkoutV3(BaseModel):
     """Top-level model for schema_version = daily-v3-coachready."""
+
     model_config = ConfigDict(extra="allow")
 
     schema_version: str

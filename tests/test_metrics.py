@@ -1,4 +1,5 @@
 """Tests for shared.metrics."""
+
 from __future__ import annotations
 
 import json
@@ -93,8 +94,16 @@ def test_decoupling_too_short_returns_none():
 
 
 def test_classification_vo2():
-    tiz = {"recovery": 600, "endurance": 600, "tempo": 600, "sweetspot": 0,
-           "threshold": 0, "vo2": 600, "anaerobic": 0, "sprint": 0}
+    tiz = {
+        "recovery": 600,
+        "endurance": 600,
+        "tempo": 600,
+        "sweetspot": 0,
+        "threshold": 0,
+        "vo2": 600,
+        "anaerobic": 0,
+        "sprint": 0,
+    }
     result = workout_classifier.classify(
         time_in_zone_sec=tiz,
         intervals=[{"zone": "vo2"}] * 3,
@@ -107,10 +116,21 @@ def test_classification_vo2():
 
 
 def test_classification_endurance():
-    tiz = {"recovery": 1200, "endurance": 4800, "tempo": 0, "sweetspot": 0,
-           "threshold": 0, "vo2": 0, "anaerobic": 0, "sprint": 0}
+    tiz = {
+        "recovery": 1200,
+        "endurance": 4800,
+        "tempo": 0,
+        "sweetspot": 0,
+        "threshold": 0,
+        "vo2": 0,
+        "anaerobic": 0,
+        "sprint": 0,
+    }
     result = workout_classifier.classify(
-        time_in_zone_sec=tiz, intervals=[], total_time_sec=6000, strava_type="Ride",
+        time_in_zone_sec=tiz,
+        intervals=[],
+        total_time_sec=6000,
+        strava_type="Ride",
     )
     assert result["type"] == "endurance"
 

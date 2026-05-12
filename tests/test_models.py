@@ -1,4 +1,5 @@
 """Validate that the sample v2-coachready JSON parses cleanly."""
+
 from __future__ import annotations
 
 import json

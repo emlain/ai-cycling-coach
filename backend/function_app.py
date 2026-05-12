@@ -6,6 +6,7 @@ Output: container `metrics/`, prefisso `daily/`, schema `daily-v3-coachready`.
 Sprint 1.1: aggiunto stream loading da `streams/{activity_id}.json`
 e calcolo metriche di potenza (NP, IF, TSS, VI, decoupling, best efforts).
 """
+
 from __future__ import annotations
 
 import json
@@ -38,14 +39,14 @@ MIN_RELFTP_FOR_INTERVAL = 0.75
 TEMPO_MIN_LAP_SEC = 360
 
 ZONES = [
-    ("recovery",   0.00, 0.55),
-    ("endurance",  0.55, 0.75),
-    ("tempo",      0.75, 0.88),
-    ("sweetspot",  0.88, 0.94),
-    ("threshold",  0.94, 1.06),
-    ("vo2",        1.06, 1.20),
-    ("anaerobic",  1.20, 1.40),
-    ("sprint",     1.40, 99.0),
+    ("recovery", 0.00, 0.55),
+    ("endurance", 0.55, 0.75),
+    ("tempo", 0.75, 0.88),
+    ("sweetspot", 0.88, 0.94),
+    ("threshold", 0.94, 1.06),
+    ("vo2", 1.06, 1.20),
+    ("anaerobic", 1.20, 1.40),
+    ("sprint", 1.40, 99.0),
 ]
 
 
@@ -99,8 +100,12 @@ def _calc_zone_times_from_laps(laps: list[dict], eftp: float | None) -> tuple[in
 def _summarize_laps(laps: list[dict], eftp: float | None) -> dict:
     if not laps:
         return {
-            "laps_count": 0, "total_laps_time_sec": 0,
-            "watts": None, "hr": None, "cadence": None, "time_in_zone_sec": None,
+            "laps_count": 0,
+            "total_laps_time_sec": 0,
+            "watts": None,
+            "hr": None,
+            "cadence": None,
+            "time_in_zone_sec": None,
         }
     watts_vals: list[float] = []
     hr_vals: list[float] = []
@@ -159,16 +164,18 @@ def _detect_intervals_from_laps(laps: list[dict], eftp: float | None) -> list[di
             continue
         if zone != "tempo" and t < MIN_LAP_SEC_FOR_INTERVAL:
             continue
-        candidates.append({
-            "lap_index": _safe_int(lap.get("lap_index")),
-            "name": lap.get("name"),
-            "dur_sec": t,
-            "avg_watts": w,
-            "avg_hr": _safe_float(lap.get("average_heartrate")),
-            "avg_cadence": _safe_float(lap.get("average_cadence")),
-            "rel_ftp": rel,
-            "zone": zone,
-        })
+        candidates.append(
+            {
+                "lap_index": _safe_int(lap.get("lap_index")),
+                "name": lap.get("name"),
+                "dur_sec": t,
+                "avg_watts": w,
+                "avg_hr": _safe_float(lap.get("average_heartrate")),
+                "avg_cadence": _safe_float(lap.get("average_cadence")),
+                "rel_ftp": rel,
+                "zone": zone,
+            }
+        )
     candidates.sort(key=lambda x: (x["rel_ftp"], x["avg_watts"]), reverse=True)
     return candidates[:MAX_INTERVALS_DETECTED]
 
@@ -233,8 +240,10 @@ def compute_metrics_from_eventgrid(event: func.EventGridEvent) -> None:
 
     # 3) RAW pass-through
     raw_strava = {
-        "id": strava.get("id"), "date": strava.get("date"),
-        "name": strava.get("name"), "type": strava.get("type"),
+        "id": strava.get("id"),
+        "date": strava.get("date"),
+        "name": strava.get("name"),
+        "type": strava.get("type"),
         "distance_km": _safe_float(strava.get("distance_km")),
         "moving_time_min": _safe_int(strava.get("moving_time_min")),
         "elevation": _safe_float(strava.get("elevation")),
@@ -273,7 +282,11 @@ def compute_metrics_from_eventgrid(event: func.EventGridEvent) -> None:
     moving_time_sec = moving_time_min * 60
 
     intensity_proxy = (avg_power / eftp) if (avg_power is not None and eftp and eftp > 0) else None
-    work_kj_proxy = ((avg_power or 0) * moving_time_sec / 1000.0) if (moving_time_sec > 0 and avg_power) else None
+    work_kj_proxy = (
+        ((avg_power or 0) * moving_time_sec / 1000.0)
+        if (moving_time_sec > 0 and avg_power)
+        else None
+    )
     ef_daily = (avg_power / avg_hr) if (avg_power is not None and avg_hr and avg_hr != 0) else None
 
     # 5) Laps-based features (invariate)
@@ -287,7 +300,10 @@ def compute_metrics_from_eventgrid(event: func.EventGridEvent) -> None:
         "ss_time_sec": ss_time_sec,
         "vo2_time_sec": vo2_time_sec,
         "training_load": {
-            "ctl": ctl, "atl": atl, "tsb": tsb, "atl_ctl_ratio": atl_ctl_ratio,
+            "ctl": ctl,
+            "atl": atl,
+            "tsb": tsb,
+            "atl_ctl_ratio": atl_ctl_ratio,
         },
         "efficiency": {"ef_daily": ef_daily},
     }

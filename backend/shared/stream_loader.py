@@ -1,4 +1,5 @@
 """Graceful loading of Strava streams from blob storage."""
+
 from __future__ import annotations
 
 import json
@@ -37,7 +38,15 @@ def try_load_stream(
     # Strava restituisce {watts: {data: [...]}, hr: {data: [...]}, ...}
     out: dict[str, list[Any]] = {}
     if isinstance(parsed, dict):
-        for key in ("watts", "heartrate", "time", "cadence", "distance", "altitude", "velocity_smooth"):
+        for key in (
+            "watts",
+            "heartrate",
+            "time",
+            "cadence",
+            "distance",
+            "altitude",
+            "velocity_smooth",
+        ):
             section = parsed.get(key)
             if isinstance(section, dict) and isinstance(section.get("data"), list):
                 out[key] = section["data"]
