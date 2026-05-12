@@ -1,0 +1,12 @@
+az storage container list --account-name emlainaicoachsa --auth-mode login -o table
+Name                               Lease Status    Last Modified
+---------------------------------  --------------  -------------------------
+aggregator                                         2026-04-23T09:51:36+00:00
+app-package-emlainaicoach-0efb81e                  2026-04-15T12:48:47+00:00
+azure-webjobs-hosts                                2026-04-15T12:50:05+00:00
+azure-webjobs-secrets                              2026-04-15T12:50:01+00:00
+deadletter                                         2026-05-07T14:24:59+00:00
+metrics                                            2026-05-07T10:29:04+00:00
+processed-data                                     2026-04-15T15:01:33+00:00
+raw-responses                                      2026-04-16T12:46:50+00:00
+status                                             2026-04-23T08:19:37+00:00
