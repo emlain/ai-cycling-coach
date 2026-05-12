@@ -1,0 +1,67 @@
+{
+  "schema_version": "daily-v2-coachready",
+  "generated_utc": "2026-05-07T16:17:47.201745+00:00",
+  "date": "2026-04-29",
+  "activity_id": "18302280862",
+  "source_blob": "aggregator/20260429_master_18302280862.json",
+  "raw": {
+    "strava": {
+      "id": 18302280862,
+      "date": "2026-04-29T06:08:44Z",
+      "name": "Progressive zones climb",
+      "type": "VirtualRide",
+      "distance_km": 30.1133,
+      "moving_time_min": 63,
+      "elevation": 299.0,
+      "avg_power": 183.7,
+      "avg_hr": 156.9,
+      "suffer_score": 72.0
+    },
+    "intervals": {
+      "date": "2026-04-29",
+      "fitness": 45.72694,
+      "fatigue": 53.91994,
+      "eftp": 258.0,
+      "pMax": 969.3432,
+      "hrv_raw": 0.0,
+      "resting_hr_raw": 0.0,
+      "sleep_hours_raw": 0.0,
+      "sleep_score": 0.0,
+      "steps": 0,
+      "readiness": 0.0
+    }
+  },
+  "coach_features": {
+    "intensity_proxy": 0.7120155038759689,
+    "work_kj_proxy": 694.386,
+    "ss_time_sec": 180,
+    "vo2_time_sec": 60,
+    "training_load": {
+      "ctl": 45.72694,
+      "atl": 53.91994,
+      "tsb": -8.192999999999998,
+      "atl_ctl_ratio": 1.179172277873831
+    },
+    "efficiency": { "ef_daily": 1.1708094327597194 }
+  },
+  "laps_summary": {
+    "laps_count": 15,
+    "total_laps_time_sec": 3601,
+    "watts":   { "avg": 183.83, "min": 118.0, "max": 303.9 },
+    "hr":      { "avg": 158.76, "min": 130.6, "max": 181.0 },
+    "cadence": { "avg": 85.48,  "min": 61.2,  "max": 101.9 },
+    "time_in_zone_sec": {
+      "recovery": 961, "endurance": 900, "tempo": 1260,
+      "sweetspot": 180, "threshold": 240, "vo2": 60,
+      "anaerobic": 0, "sprint": 0
+    }
+  },
+  "intervals_detected": [
+    {"lap_index": 6, "name": "Lap 6", "dur_sec": 60,
+     "avg_watts": 303.9, "avg_hr": 181.0, "avg_cadence": 75.1,
+     "rel_ftp": 1.178, "zone": "vo2"},
+    {"lap_index": 5, "name": "Lap 5", "dur_sec": 180,
+     "avg_watts": 260.8, "avg_hr": 177.4, "avg_cadence": 82.1,
+     "rel_ftp": 1.011, "zone": "threshold"}
+  ]
+}

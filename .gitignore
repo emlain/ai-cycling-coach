@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Azure Functions
+local.settings.json
+bin/
+obj/
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+.vite/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Personal data — NEVER commit
+/data/
+/workouts/
+/exports/
+athlete/profile.json
+
+# Artifacts
+*.bacpac
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+!.vscode/settings.json.example
+.idea/
