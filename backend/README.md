@@ -1,24 +1,44 @@
-# Backend (Azure Functions, Python 3.11)
+# Backend — Azure Function (Python 3.11)
 
-## Funzioni
+## Architettura
 
-- `ingest_function/` — Blob-triggered: legge JSON v2-coachready, calcola
-  metriche derivate, salva su Cosmos DB.
-- `api_function/` — HTTP-triggered: serve REST + chat AI.
+```
+EventGrid (BlobCreated su /aggregator)
+        │
+        ▼
+function_app.py: ComputeMetricsFromEventGrid
+        │
+        ├─ legge /aggregator/{blob}.json
+        ├─ legge /streams/{activity_id}.json (se esiste)
+        ├─ shared/metrics.py        → NP, IF, TSS, VI, decoupling, best efforts
+        ├─ shared/workout_classifier.py → classificazione tipo workout
+        └─ scrive /metrics/daily/{date}_master_{id}.metrics.json (schema v3)
+```
 
-## Run locale
+## Local run
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp local.settings.json.example local.settings.json
-# modifica local.settings.json con le tue credenziali (NON committarlo)
+# Edita local.settings.json con le tue credenziali (NON committare)
 func start
 ```
 
 ## Test
 
 ```bash
-pytest ../tests -v
+pip install pytest ruff
+pytest -v
 ```
+
+## Deploy
+
+```bash
+# Da root del repo
+cd backend
+func azure functionapp publish emlainaicoach --python
+```
+
+> ⚠️ Prima del primo deploy v3, **fai backup del codice esistente** (è già in `/azure-current-state/function-app-existing/`).

@@ -1,15 +1,10 @@
-"""Pydantic models for the daily-v2-coachready schema.
-
-Faithfully represents the JSON produced by the existing ingest Function.
-Used both by the ingest_function (validation) and the api_function (serialization).
-"""
+"""Pydantic models for daily-v3-coachready schema."""
 from __future__ import annotations
 
 from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 Zone = Literal[
     "recovery", "endurance", "tempo", "sweetspot",
@@ -52,14 +47,10 @@ class RawSection(BaseModel):
 
 
 class TrainingLoad(BaseModel):
-    ctl: float
-    atl: float
-    tsb: float
+    ctl: float | None = None
+    atl: float | None = None
+    tsb: float | None = None
     atl_ctl_ratio: float | None = None
-
-
-class Efficiency(BaseModel):
-    ef_daily: float | None = None
 
 
 class CoachFeatures(BaseModel):
@@ -68,7 +59,7 @@ class CoachFeatures(BaseModel):
     ss_time_sec: int = 0
     vo2_time_sec: int = 0
     training_load: TrainingLoad
-    efficiency: Efficiency = Field(default_factory=Efficiency)
+    efficiency: dict = Field(default_factory=dict)
 
 
 class StatTriple(BaseModel):
@@ -94,12 +85,12 @@ class LapsSummary(BaseModel):
     watts: StatTriple = Field(default_factory=StatTriple)
     hr: StatTriple = Field(default_factory=StatTriple)
     cadence: StatTriple = Field(default_factory=StatTriple)
-    time_in_zone_sec: TimeInZoneSec = Field(default_factory=TimeInZoneSec)
+    time_in_zone_sec: TimeInZoneSec | None = None
 
 
 class DetectedInterval(BaseModel):
-    lap_index: int
-    name: str
+    lap_index: int | None = None
+    name: str | None = None
     dur_sec: int
     avg_watts: float
     avg_hr: float | None = None
@@ -108,8 +99,49 @@ class DetectedInterval(BaseModel):
     zone: Zone
 
 
-class WorkoutV2(BaseModel):
-    """Top-level model for schema_version = daily-v2-coachready."""
+# --- v3 NEW ---
+class DataQuality(BaseModel):
+    has_power: bool
+    has_hr: bool
+    has_stream: bool
+    has_wellness: bool
+    indoor: bool
+
+
+class AthleteContext(BaseModel):
+    ftp_used: float | None = None
+    weight_kg: float | None = None
+    age: int | None = None
+
+
+class PowerMetrics(BaseModel):
+    avg: float | None = None
+    np: float | None = None
+    if_: float | None = Field(default=None, alias="if")
+    tss: float | None = None
+    vi: float | None = None
+    work_kj: float | None = None
+    duration_sec: float | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class HrMetrics(BaseModel):
+    avg: float | None = None
+    max: float | None = None
+    decoupling_pct: float | None = None
+    drift_pct: float | None = None
+
+
+class WorkoutClassification(BaseModel):
+    type: str
+    primary_system: str
+    structured: bool
+    confidence: float
+
+
+class WorkoutV3(BaseModel):
+    """Top-level model for schema_version = daily-v3-coachready."""
     model_config = ConfigDict(extra="allow")
 
     schema_version: str
@@ -117,7 +149,17 @@ class WorkoutV2(BaseModel):
     date: date
     activity_id: str
     source_blob: str | None = None
+    athlete_context: AthleteContext = Field(default_factory=AthleteContext)
+    data_quality: DataQuality
     raw: RawSection
     coach_features: CoachFeatures
+    power_metrics: PowerMetrics | None = None
+    hr_metrics: HrMetrics | None = None
+    best_efforts: dict[str, float] | None = None
+    workout_classification: WorkoutClassification | None = None
     laps_summary: LapsSummary
     intervals_detected: list[DetectedInterval] = Field(default_factory=list)
+
+
+# Backward compat alias
+WorkoutV2 = WorkoutV3
