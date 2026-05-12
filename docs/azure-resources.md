@@ -48,7 +48,7 @@
 Esegui in Cloud Shell e copia gli output qui sotto.
 
 ```bash
-RG=<NOME_RG>
+RG=emlain-ai-coach
 
 # Tutte le risorse del RG
 az resource list -g $RG -o table > rg-resources.txt
@@ -65,7 +65,7 @@ az functionapp list -g $RG \
 az storage account list -g $RG --query "[].name" -o tsv > storage-accounts.txt
 
 # Per ciascuno storage account, lista i container:
-# az storage container list --account-name <name> --auth-mode login -o table
+# az storage container list --account-name emlainaicoachsa --auth-mode login -o table
 ```
 
 ---

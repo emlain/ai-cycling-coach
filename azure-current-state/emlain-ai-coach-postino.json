@@ -1,0 +1,1564 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_emlain_ai_coach_postino_name": {
+            "defaultValue": "emlain-ai-coach-postino",
+            "type": "String"
+        },
+        "connections_keyvault_1_externalid": {
+            "defaultValue": "/subscriptions/5b1877c3-339d-48f5-9594-b68125cf383b/resourceGroups/emlain-ai-coach/providers/Microsoft.Web/connections/keyvault-1",
+            "type": "String"
+        },
+        "connections_azureblob_externalid": {
+            "defaultValue": "/subscriptions/5b1877c3-339d-48f5-9594-b68125cf383b/resourceGroups/emlain-ai-coach/providers/Microsoft.Web/connections/azureblob",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('workflows_emlain_ai_coach_postino_name')]",
+            "location": "italynorth",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        }
+                    },
+                    "triggers": {
+                        "When_an_HTTP_request_is_received": {
+                            "type": "Request",
+                            "kind": "Http"
+                        }
+                    },
+                    "actions": {
+                        "Strava-Client-Secret": {
+                            "runAfter": {
+                                "Strava-client-ID": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['keyvault-1']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/secrets/@{encodeURIComponent('STRAVA-CLIENT-SECRET')}/value"
+                            },
+                            "runtimeConfiguration": {
+                                "secureData": {
+                                    "properties": [
+                                        "inputs",
+                                        "outputs"
+                                    ]
+                                }
+                            }
+                        },
+                        "Strava-Refresh-Token": {
+                            "runAfter": {
+                                "Strava-Client-Secret": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['keyvault-1']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/secrets/@{encodeURIComponent('Strava-Refresh-Token')}/value"
+                            },
+                            "runtimeConfiguration": {
+                                "secureData": {
+                                    "properties": [
+                                        "inputs",
+                                        "outputs"
+                                    ]
+                                }
+                            }
+                        },
+                        "HTTP_Get_Access_token_strava": {
+                            "runAfter": {
+                                "Strava-Refresh-Token": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Http",
+                            "inputs": {
+                                "uri": "https://www.strava.com/oauth/token",
+                                "method": "POST",
+                                "queries": {
+                                    "client_id": "@{body('Strava-client-ID')?['value']}",
+                                    "client_secret": "@{body('Strava-Client-Secret')?['value']}",
+                                    "grant_type": "refresh_token",
+                                    "refresh_token": "@{body('Strava-Refresh-Token')?['value']}"
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "Get_Access_Token_Strava": {
+                            "runAfter": {
+                                "HTTP_Get_Access_token_strava": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('HTTP_Get_Access_token_strava')",
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token_type": {
+                                            "type": "string"
+                                        },
+                                        "expires_at": {
+                                            "type": "integer"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer"
+                                        },
+                                        "refresh_token": {
+                                            "type": "string"
+                                        },
+                                        "access_token": {
+                                            "type": "string"
+                                        },
+                                        "athlete": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "username": {
+                                                    "type": "string"
+                                                },
+                                                "resource_state": {
+                                                    "type": "integer"
+                                                },
+                                                "firstname": {
+                                                    "type": "string"
+                                                },
+                                                "lastname": {
+                                                    "type": "string"
+                                                },
+                                                "bio": {},
+                                                "city": {},
+                                                "state": {},
+                                                "country": {},
+                                                "sex": {
+                                                    "type": "string"
+                                                },
+                                                "premium": {
+                                                    "type": "boolean"
+                                                },
+                                                "summit": {
+                                                    "type": "boolean"
+                                                },
+                                                "created_at": {
+                                                    "type": "string"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string"
+                                                },
+                                                "badge_type_id": {
+                                                    "type": "integer"
+                                                },
+                                                "profile_medium": {
+                                                    "type": "string"
+                                                },
+                                                "profile": {
+                                                    "type": "string"
+                                                },
+                                                "friend": {},
+                                                "follower": {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "HTTP_Scarica_Dati_Strava": {
+                            "runAfter": {
+                                "Get_Access_Token_Strava": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Http",
+                            "inputs": {
+                                "uri": "https://www.strava.com/api/v3/athlete/activities",
+                                "method": "GET",
+                                "headers": {
+                                    "Authorization": "Bearer @{body('Get_Access_Token_Strava')?['access_token']}"
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "Create_blob_STRAVA": {
+                            "runAfter": {
+                                "HTTP_Scarica_Dati_Strava": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": "@body('HTTP_Scarica_Dati_Strava')",
+                                "headers": {
+                                    "ReadFileMetadataFromServer": true
+                                },
+                                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                "queries": {
+                                    "folderPath": "/raw-responses",
+                                    "name": "@concat('strava_', formatDateTime(utcNow(), 'yyyy-MM-dd'), '.json')",
+                                    "queryParametersSingleEncoded": true
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "HTTP_Scarica_dati_Intervals": {
+                            "runAfter": {
+                                "Intervals-Athlete-ID": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Http",
+                            "inputs": {
+                                "uri": "@concat('https://intervals.icu/api/v1/athlete/',body('Intervals-Athlete-ID')?['value'],'/wellness')",
+                                "method": "GET",
+                                "headers": {
+                                    "Authorization": "Basic @{base64(concat('API_KEY', ':', body('Intervals-API-KEY')?['value']))}",
+                                    "User-Agent": "curl/7.68.0"
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "Intervals-API-KEY": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['keyvault-1']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/secrets/@{encodeURIComponent('INTERVALS-API-KEY')}/value"
+                            },
+                            "runtimeConfiguration": {
+                                "secureData": {
+                                    "properties": [
+                                        "inputs",
+                                        "outputs"
+                                    ]
+                                }
+                            }
+                        },
+                        "Intervals-Athlete-ID": {
+                            "runAfter": {
+                                "Intervals-API-KEY": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['keyvault-1']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/secrets/@{encodeURIComponent('INTERVALS-ATHLETE-ID')}/value"
+                            },
+                            "runtimeConfiguration": {
+                                "secureData": {
+                                    "properties": [
+                                        "inputs",
+                                        "outputs"
+                                    ]
+                                }
+                            }
+                        },
+                        "Create_blob_Intervals": {
+                            "runAfter": {
+                                "HTTP_Scarica_dati_Intervals": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": "@body('HTTP_Scarica_dati_Intervals')",
+                                "headers": {
+                                    "ReadFileMetadataFromServer": true
+                                },
+                                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                "queries": {
+                                    "folderPath": "/raw-responses",
+                                    "name": "@concat('intervals_', formatDateTime(utcNow(), 'yyyy-MM-dd'), '.json')",
+                                    "queryParametersSingleEncoded": true
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "Intervals_Parse_JSON": {
+                            "runAfter": {
+                                "HTTP_Scarica_dati_Intervals": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('HTTP_Scarica_dati_Intervals')",
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": [
+                                            "id"
+                                        ],
+                                        "properties": {
+                                            "id": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "ctl": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "atl": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "rampRate": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "ctlLoad": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "atlLoad": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "sportInfo": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "type": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "eftp": {
+                                                            "type": [
+                                                                "number",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "wPrime": {
+                                                            "type": [
+                                                                "number",
+                                                                "null"
+                                                            ]
+                                                        },
+                                                        "pMax": {
+                                                            "type": [
+                                                                "number",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "updated": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "weight": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "restingHR": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "hrv": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "hrvSDNN": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "menstrualPhase": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "menstrualPhasePredicted": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "kcalConsumed": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "sleepSecs": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "sleepScore": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "sleepQuality": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "avgSleepingHR": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "soreness": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "fatigue": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "stress": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "mood": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "motivation": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "injury": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "spO2": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "systolic": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "diastolic": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "hydration": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "hydrationVolume": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "readiness": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "baevskySI": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "bloodGlucose": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "lactate": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "bodyFat": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "abdomen": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "vo2max": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "comments": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "steps": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "respiration": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "carbohydrates": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "protein": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "fatTotal": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "locked": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "tempWeight": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "tempRestingHR": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "Select_filed_for_Intervals": {
+                            "runAfter": {
+                                "Intervals_Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Select",
+                            "inputs": {
+                                "from": "@body('Intervals_Parse_JSON')",
+                                "select": {
+                                    "date": "@item()?['id']",
+                                    "fitness": "@coalesce(item()?['ctl'], 0)",
+                                    "fatigue": "@coalesce(item()?['atl'], 0)",
+                                    "eftp": "@coalesce(first(item()?['sportInfo'])?['eftp'], 0)",
+                                    "pMax": "@coalesce(first(item()?['sportInfo'])?['pMax'], 0)",
+                                    "hrv": "@coalesce(item()?['hrv'], 0)",
+                                    "resting_hr": "@coalesce(item()?['restingHR'], 0)",
+                                    "sleep_score": "@coalesce(item()?['sleepScore'], 0)",
+                                    "sleep_hours": "@div(coalesce(item()?['sleepSecs'], 0), 3600)",
+                                    "steps": "@coalesce(item()?['steps'], 0)",
+                                    "readiness": "@coalesce(item()?['readiness'], 0)"
+                                }
+                            }
+                        },
+                        "Create_blob_intervals2": {
+                            "runAfter": {
+                                "Select_filed_for_Intervals": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "body": "@body('Select_filed_for_Intervals')",
+                                "headers": {
+                                    "ReadFileMetadataFromServer": true
+                                },
+                                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                "queries": {
+                                    "folderPath": "/processed-data",
+                                    "name": "@concat('intervals_lite','.json')",
+                                    "queryParametersSingleEncoded": true
+                                }
+                            },
+                            "runtimeConfiguration": {
+                                "contentTransfer": {
+                                    "transferMode": "Chunked"
+                                }
+                            }
+                        },
+                        "GetStravaHistory": {
+                            "runAfter": {
+                                "Initialize_variables": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('/processed-data/strava_history_lite.json'))}/content",
+                                "queries": {
+                                    "inferContentType": true
+                                }
+                            }
+                        },
+                        "Strava_Parse_JSON": {
+                            "runAfter": {
+                                "HTTP_Scarica_Dati_Strava": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@body('HTTP_Scarica_Dati_Strava')",
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": [
+                                            "id"
+                                        ],
+                                        "properties": {
+                                            "resource_state": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "athlete": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": [
+                                                            "number",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "resource_state": {
+                                                        "type": [
+                                                            "number",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "name": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "distance": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "moving_time": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "elapsed_time": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "total_elevation_gain": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "type": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "sport_type": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "device_name": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "id": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "start_date": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "start_date_local": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "timezone": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "utc_offset": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "location_city": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "location_state": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "location_country": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "achievement_count": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "kudos_count": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "comment_count": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "athlete_count": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "photo_count": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "map": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "summary_polyline": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "resource_state": {
+                                                        "type": [
+                                                            "number",
+                                                            "null"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "trainer": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "commute": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "manual": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "private": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "visibility": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "flagged": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "gear_id": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "start_latlng": {
+                                                "type": [
+                                                    "array",
+                                                    "null"
+                                                ],
+                                                "items": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "end_latlng": {
+                                                "type": [
+                                                    "array",
+                                                    "null"
+                                                ],
+                                                "items": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "average_speed": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "max_speed": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "average_cadence": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "average_watts": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "max_watts": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "weighted_average_watts": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "device_watts": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "kilojoules": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "has_heartrate": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "average_heartrate": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "max_heartrate": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "heartrate_opt_out": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "display_hide_heartrate_option": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "elev_high": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "elev_low": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "upload_id": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "upload_id_str": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "external_id": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "from_accepted_tag": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "pr_count": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "total_photo_count": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "has_kudoed": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "suffer_score": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "workout_type": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "average_temp": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "Select1": {
+                            "runAfter": {
+                                "Strava_Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Select",
+                            "inputs": {
+                                "from": "@body('Strava_Parse_JSON')",
+                                "select": {
+                                    "id": "@item()?['id']",
+                                    "date": "@item()?['start_date_local']",
+                                    "name": "@item()?['name']",
+                                    "type": "@item()?['sport_type']",
+                                    "distance_km": "@div(item()?['distance'], 1000)",
+                                    "moving_time_min": "@div(item()?['moving_time'], 60)",
+                                    "elevation": "@item()?['total_elevation_gain']",
+                                    "avg_power": "@item()?['average_watts']",
+                                    "avg_hr": "@item()?['average_heartrate']",
+                                    "suffer_score": "@coalesce(item()?['suffer_score'], 0)"
+                                }
+                            }
+                        },
+                        "VerificaSeFileEsiste": {
+                            "actions": {
+                                "ComposeAppendiAttivitaSuFile": {
+                                    "runAfter": {
+                                        "For_each": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Compose",
+                                    "inputs": "@union(json(string(body('GetStravaHistory'))), variables('NuoveAttivitaFiltrate'))"
+                                },
+                                "CreateStravaHistory": {
+                                    "runAfter": {
+                                        "ComposeAppendiAttivitaSuFile": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "body": "@outputs('ComposeAppendiAttivitaSuFile')",
+                                        "headers": {
+                                            "ReadFileMetadataFromServer": true
+                                        },
+                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                        "queries": {
+                                            "folderPath": "/processed-data\n",
+                                            "name": "strava_history_lite.json",
+                                            "queryParametersSingleEncoded": true
+                                        }
+                                    },
+                                    "runtimeConfiguration": {
+                                        "contentTransfer": {
+                                            "transferMode": "Chunked"
+                                        }
+                                    }
+                                },
+                                "For_each": {
+                                    "foreach": "@body('Select1')",
+                                    "actions": {
+                                        "Filter_per_ID_": {
+                                            "type": "Query",
+                                            "inputs": {
+                                                "from": "@if(empty(body('GetStravaHistory')), json('[]'), json(string(body('GetStravaHistory'))))",
+                                                "where": "@equals(item()?['id'], items('For_each')?['id'])"
+                                            }
+                                        },
+                                        "Condition": {
+                                            "actions": {
+                                                "Append_to_array_variable": {
+                                                    "type": "AppendToArrayVariable",
+                                                    "inputs": {
+                                                        "name": "NuoveAttivitaFiltrate",
+                                                        "value": "@items('For_each')"
+                                                    }
+                                                },
+                                                "CreateLapsFilePerActivity": {
+                                                    "runAfter": {
+                                                        "HTTPgetLaps": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "ApiConnection",
+                                                    "inputs": {
+                                                        "host": {
+                                                            "connection": {
+                                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                                            }
+                                                        },
+                                                        "method": "post",
+                                                        "body": "@body('HTTPgetLaps')",
+                                                        "headers": {
+                                                            "ReadFileMetadataFromServer": true
+                                                        },
+                                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                                        "queries": {
+                                                            "folderPath": "/processed-data",
+                                                            "name": "laps_@{items('For_each')?['id']}.json",
+                                                            "queryParametersSingleEncoded": true
+                                                        }
+                                                    },
+                                                    "runtimeConfiguration": {
+                                                        "contentTransfer": {
+                                                            "transferMode": "Chunked"
+                                                        }
+                                                    }
+                                                },
+                                                "HTTPgetLaps": {
+                                                    "runAfter": {
+                                                        "Append_to_array_variable": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "type": "Http",
+                                                    "inputs": {
+                                                        "uri": "https://www.strava.com/api/v3/activities/@{items('For_each')?['id']}/laps",
+                                                        "method": "GET",
+                                                        "headers": {
+                                                            "Authorization": "Bearer @{body('Get_Access_Token_Strava')?['access_token']}"
+                                                        }
+                                                    },
+                                                    "runtimeConfiguration": {
+                                                        "contentTransfer": {
+                                                            "transferMode": "Chunked"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "runAfter": {
+                                                "Filter_per_ID_": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "else": {
+                                                "actions": {}
+                                            },
+                                            "expression": {
+                                                "and": [
+                                                    {
+                                                        "equals": [
+                                                            "@length(body('Filter_per_ID_'))",
+                                                            0
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            "type": "If"
+                                        }
+                                    },
+                                    "type": "Foreach"
+                                }
+                            },
+                            "runAfter": {
+                                "GetStravaHistory": [
+                                    "Succeeded",
+                                    "Failed"
+                                ]
+                            },
+                            "else": {
+                                "actions": {
+                                    "FileNonEsiste": {
+                                        "type": "Compose",
+                                        "inputs": "@union(json('[]'), body('Select1'))"
+                                    },
+                                    "CreatePrimoStravaHistory": {
+                                        "runAfter": {
+                                            "For_each_old_activities": [
+                                                "Succeeded"
+                                            ]
+                                        },
+                                        "type": "ApiConnection",
+                                        "inputs": {
+                                            "host": {
+                                                "connection": {
+                                                    "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                                }
+                                            },
+                                            "method": "post",
+                                            "body": "@outputs('FileNonEsiste')",
+                                            "headers": {
+                                                "ReadFileMetadataFromServer": true
+                                            },
+                                            "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                            "queries": {
+                                                "folderPath": "/processed-data\n",
+                                                "name": "strava_history_lite.json",
+                                                "queryParametersSingleEncoded": true
+                                            }
+                                        },
+                                        "runtimeConfiguration": {
+                                            "contentTransfer": {
+                                                "transferMode": "Chunked"
+                                            }
+                                        }
+                                    },
+                                    "For_each_old_activities": {
+                                        "foreach": "@outputs('FileNonEsiste')",
+                                        "actions": {
+                                            "HTTPgetOldLaps": {
+                                                "type": "Http",
+                                                "inputs": {
+                                                    "uri": "https://www.strava.com/api/v3/activities/@{items('For_each_old_activities')?['id']}/laps",
+                                                    "method": "GET",
+                                                    "headers": {
+                                                        "Authorization": "Bearer @{body('Get_Access_Token_Strava')?['access_token']}"
+                                                    }
+                                                },
+                                                "runtimeConfiguration": {
+                                                    "contentTransfer": {
+                                                        "transferMode": "Chunked"
+                                                    }
+                                                }
+                                            },
+                                            "CreateLapsOldActivites": {
+                                                "runAfter": {
+                                                    "HTTPgetOldLaps": [
+                                                        "Succeeded"
+                                                    ]
+                                                },
+                                                "type": "ApiConnection",
+                                                "inputs": {
+                                                    "host": {
+                                                        "connection": {
+                                                            "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                                        }
+                                                    },
+                                                    "method": "post",
+                                                    "body": "@body('HTTPgetOldLaps')",
+                                                    "headers": {
+                                                        "ReadFileMetadataFromServer": true
+                                                    },
+                                                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                                    "queries": {
+                                                        "folderPath": "/processed-data",
+                                                        "name": "laps_@{items('For_each_old_activities')?['id']}.json",
+                                                        "queryParametersSingleEncoded": true
+                                                    }
+                                                },
+                                                "runtimeConfiguration": {
+                                                    "contentTransfer": {
+                                                        "transferMode": "Chunked"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "runAfter": {
+                                            "FileNonEsiste": [
+                                                "Succeeded"
+                                            ]
+                                        },
+                                        "type": "Foreach"
+                                    }
+                                }
+                            },
+                            "expression": {
+                                "and": [
+                                    {
+                                        "equals": [
+                                            "@outputs('GetStravaHistory')?['statusCode']",
+                                            200
+                                        ]
+                                    }
+                                ]
+                            },
+                            "type": "If"
+                        },
+                        "Initialize_variables": {
+                            "runAfter": {
+                                "Select1": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "NuoveAttivitaFiltrate",
+                                        "type": "array"
+                                    }
+                                ]
+                            }
+                        },
+                        "Strava-client-ID": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['keyvault-1']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/secrets/@{encodeURIComponent('STRAVA-CLIENT-ID')}/value"
+                            },
+                            "runtimeConfiguration": {
+                                "secureData": {
+                                    "properties": [
+                                        "inputs",
+                                        "outputs"
+                                    ]
+                                }
+                            }
+                        },
+                        "Get_blob_Intervals_lite": {
+                            "runAfter": {
+                                "VerificaSeFileEsiste": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('/processed-data/intervals_lite.json'))}/content",
+                                "queries": {
+                                    "inferContentType": true
+                                }
+                            }
+                        },
+                        "SeItervals_lite_esiste": {
+                            "actions": {
+                                "Create_Ready.OK": {
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "body": "{\n\"status\": \"completed\",\n\"timestamp\": \"@{utcNow()}\",\n}",
+                                        "headers": {
+                                            "ReadFileMetadataFromServer": true
+                                        },
+                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                        "queries": {
+                                            "folderPath": "/status",
+                                            "name": "Ready.OK",
+                                            "queryParametersSingleEncoded": true
+                                        }
+                                    },
+                                    "runtimeConfiguration": {
+                                        "contentTransfer": {
+                                            "transferMode": "Chunked"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Get_blob_Intervals_lite": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "else": {
+                                "actions": {}
+                            },
+                            "expression": {
+                                "and": [
+                                    {
+                                        "equals": [
+                                            "@outputs('Get_blob_Intervals_lite')?['statusCode']",
+                                            200
+                                        ]
+                                    }
+                                ]
+                            },
+                            "type": "If"
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "keyvault-1": {
+                                "id": "/subscriptions/5b1877c3-339d-48f5-9594-b68125cf383b/providers/Microsoft.Web/locations/italynorth/managedApis/keyvault",
+                                "connectionId": "[parameters('connections_keyvault_1_externalid')]",
+                                "connectionName": "keyvault-1",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                }
+                            },
+                            "azureblob": {
+                                "id": "/subscriptions/5b1877c3-339d-48f5-9594-b68125cf383b/providers/Microsoft.Web/locations/italynorth/managedApis/azureblob",
+                                "connectionId": "[parameters('connections_azureblob_externalid')]",
+                                "connectionName": "azureblob",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

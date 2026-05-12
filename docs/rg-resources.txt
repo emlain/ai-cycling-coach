@@ -1,0 +1,17 @@
+system [ ~ ]$ az resource list -g emlain-ai-coach -o table
+Name                                                           ResourceGroup    Location    Type                                      Status
+-------------------------------------------------------------  ---------------  ----------  ----------------------------------------  ---------
+emlainaicoachsa                                                emlain-ai-coach  italynorth  Microsoft.Storage/storageAccounts         Succeeded
+emlain-ai-coach-vnet001                                        emlain-ai-coach  italynorth  Microsoft.Network/virtualNetworks         Succeeded
+ASP-emlainaicoach-a332                                         emlain-ai-coach  italynorth  Microsoft.Web/serverFarms                 Succeeded
+emlainaicoach                                                  emlain-ai-coach  italynorth  Microsoft.Web/sites                       Succeeded
+emlain-ai-coach-vnet001-emlain-ai-coach-sub001-nsg-italynorth  emlain-ai-coach  italynorth  Microsoft.Network/networkSecurityGroups   Succeeded
+emlainaicoachsa-a0cf5272-0f30-4323-92bb-7f6fde236af1           emlain-ai-coach  italynorth  Microsoft.EventGrid/systemTopics          Succeeded
+emlain-ai-coach-kv                                             emlain-ai-coach  italynorth  Microsoft.KeyVault/vaults                 Succeeded
+emlain-ai-coach-postino                                        emlain-ai-coach  italynorth  Microsoft.Logic/workflows                 Succeeded
+keyvault-1                                                     emlain-ai-coach  italynorth  Microsoft.Web/connections                 Succeeded
+azureblob                                                      emlain-ai-coach  italynorth  Microsoft.Web/connections                 Succeeded
+emlain-ai-coach-aggregator                                     emlain-ai-coach  italynorth  Microsoft.Logic/workflows                 Succeeded
+emlainaicoach-law                                              emlain-ai-coach  italynorth  Microsoft.OperationalInsights/workspaces  Succeeded
+emlainaicoach-appinsight                                       emlain-ai-coach  italynorth  microsoft.insights/components             Succeeded
+Application Insights Smart Detection                           emlain-ai-coach  global      microsoft.insights/actiongroups           Succeeded
