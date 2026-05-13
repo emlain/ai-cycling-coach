@@ -29,6 +29,7 @@ build/
 /workouts/
 /exports/
 athlete/profile.json
+athlete/bikes.json
 
 # Artifacts
 *.bacpac
