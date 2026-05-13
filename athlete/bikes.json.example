@@ -1,0 +1,28 @@
+{
+  "_comment": "Bike mapping for the Function App. Used to enrich activity_context.bike and as fallback when gear_id is null on historical activities. The actual bikes.json (non-example) is gitignored and should be kept in sync with your real Strava gear_ids. Refresh after registering new bikes on Strava.",
+  "bikes": {
+    "b17387028": {
+      "name": "CCT EVO Pro",
+      "default_sport_type": "Ride",
+      "indoor": false,
+      "brand": null,
+      "model": null,
+      "notes": "Bici da strada (default per Ride)"
+    },
+    "b14855896": {
+      "name": "Look 566",
+      "default_sport_type": "VirtualRide",
+      "indoor": true,
+      "brand": "Look",
+      "model": "566",
+      "notes": "Bici sul rullo / smart trainer (default per VirtualRide)"
+    }
+  },
+  "fallback_by_sport_type": {
+    "Ride": "b17387028",
+    "VirtualRide": "b14855896",
+    "GravelRide": "b17387028",
+    "MountainBikeRide": "b17387028",
+    "EBikeRide": "b17387028"
+  }
+}

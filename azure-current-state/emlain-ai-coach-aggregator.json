@@ -55,97 +55,14 @@
                                 }
                             }
                         },
-                        "For_each": {
-                            "foreach": "@body('Parse_JSON_Strava')",
-                            "actions": {
-                                "GetLAPSperID": {
-                                    "type": "ApiConnection",
-                                    "inputs": {
-                                        "host": {
-                                            "connection": {
-                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
-                                            }
-                                        },
-                                        "method": "get",
-                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('processed-data/laps_',items('For_each')?['id'],'.json'))}/content",
-                                        "queries": {
-                                            "inferContentType": true
-                                        }
-                                    }
-                                },
-                                "Filter_array": {
-                                    "runAfter": {
-                                        "DaBinarioaJasonLaps": [
-                                            "Succeeded"
-                                        ]
-                                    },
-                                    "type": "Query",
-                                    "inputs": {
-                                        "from": "@json(outputs('DaBinarioAJsonIntervals'))",
-                                        "where": "@equals(item()?['date'], substring(items('For_each')?['date'], 0, 10))"
-                                    }
-                                },
-                                "Compose": {
-                                    "runAfter": {
-                                        "Filter_array": [
-                                            "Succeeded"
-                                        ]
-                                    },
-                                    "type": "Compose",
-                                    "inputs": {
-                                        "activity_id": "@{items('For_each')?['id']}",
-                                        "strava_data": "@items('For_each')",
-                                        "intervals_data": "@first(body('Filter_Array'))",
-                                        "laps_data": "@json(outputs('DaBinarioaJasonLaps'))"
-                                    }
-                                },
-                                "CreoFileCompleti": {
-                                    "runAfter": {
-                                        "Compose": [
-                                            "Succeeded"
-                                        ]
-                                    },
-                                    "type": "ApiConnection",
-                                    "inputs": {
-                                        "host": {
-                                            "connection": {
-                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
-                                            }
-                                        },
-                                        "method": "post",
-                                        "body": "@outputs('Compose')",
-                                        "headers": {
-                                            "ReadFileMetadataFromServer": true
-                                        },
-                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
-                                        "queries": {
-                                            "folderPath": "/aggregator",
-                                            "name": "@{formatDateTime(items('For_each')?['date'], 'yyyyMMdd')}_master_@{items('For_each')?['id']}.json",
-                                            "queryParametersSingleEncoded": true
-                                        }
-                                    },
-                                    "runtimeConfiguration": {
-                                        "contentTransfer": {
-                                            "transferMode": "Chunked"
-                                        }
-                                    }
-                                },
-                                "DaBinarioaJasonLaps": {
-                                    "runAfter": {
-                                        "GetLAPSperID": [
-                                            "Succeeded"
-                                        ]
-                                    },
-                                    "type": "Compose",
-                                    "inputs": "@replace(base64ToString(body('GetLAPSperID')?['$content']), decodeUriComponent('%EF%BB%BF'), '')"
-                                }
-                            },
+                        "DaBinarioAJsonIntervals": {
                             "runAfter": {
-                                "Parse_JSON_Strava": [
+                                "LeggoDatiIntervals": [
                                     "Succeeded"
                                 ]
                             },
-                            "type": "Foreach"
+                            "type": "Compose",
+                            "inputs": "@replace(base64ToString(body('LeggoDatiIntervals')?['$content']), decodeUriComponent('%EF%BB%BF'), '')\n\n\n\n"
                         },
                         "Parse_JSON_Intervals": {
                             "runAfter": {
@@ -232,6 +149,15 @@
                                 }
                             }
                         },
+                        "DaBinarioaJsonStrava": {
+                            "runAfter": {
+                                "LeggoDatiStravaHistory": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Compose",
+                            "inputs": "@replace(base64ToString(body('LeggoDatiStravaHistory')?['$content']), decodeUriComponent('%EF%BB%BF'), '')"
+                        },
                         "Parse_JSON_Strava": {
                             "runAfter": {
                                 "DaBinarioaJsonStrava": [
@@ -275,29 +201,193 @@
                                             },
                                             "suffer_score": {
                                                 "type": "number"
+                                            },
+                                            "sport_type": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "workout_type": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "gear_id": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ]
+                                            },
+                                            "commute": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "trainer": {
+                                                "type": [
+                                                    "boolean",
+                                                    "null"
+                                                ]
+                                            },
+                                            "max_hr": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "avg_cadence": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "elapsed_time_min": {
+                                                "type": [
+                                                    "number",
+                                                    "null"
+                                                ]
+                                            },
+                                            "start_latlng": {
+                                                "type": [
+                                                    "array",
+                                                    "null"
+                                                ],
+                                                "items": {
+                                                    "type": "number"
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         },
-                        "DaBinarioAJsonIntervals": {
+                        "LeggoAthleteProfile": {
                             "runAfter": {
-                                "LeggoDatiIntervals": [
+                                "DaBinarioaJsonStrava": [
                                     "Succeeded"
                                 ]
                             },
-                            "type": "Compose",
-                            "inputs": "@replace(base64ToString(body('LeggoDatiIntervals')?['$content']), decodeUriComponent('%EF%BB%BF'), '')\n\n\n\n"
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                    }
+                                },
+                                "method": "get",
+                                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('/processed-data/athlete_profile.json'))}/content",
+                                "queries": {
+                                    "inferContentType": true
+                                }
+                            }
                         },
-                        "DaBinarioaJsonStrava": {
+                        "DaBinarioAJsonAthleteProfile": {
                             "runAfter": {
-                                "LeggoDatiStravaHistory": [
+                                "LeggoAthleteProfile": [
                                     "Succeeded"
                                 ]
                             },
                             "type": "Compose",
-                            "inputs": "@replace(base64ToString(body('LeggoDatiStravaHistory')?['$content']), decodeUriComponent('%EF%BB%BF'), '')"
+                            "inputs": "@replace(base64ToString(body('LeggoAthleteProfile')?['$content']), decodeUriComponent('%EF%BB%BF'), '')"
+                        },
+                        "For_each": {
+                            "foreach": "@body('Parse_JSON_Strava')",
+                            "actions": {
+                                "GetLAPSperID": {
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                            }
+                                        },
+                                        "method": "get",
+                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('processed-data/laps_',item()?['id'],'.json'))}/content",
+                                        "queries": {
+                                            "inferContentType": true
+                                        }
+                                    }
+                                },
+                                "DaBinarioaJasonLaps": {
+                                    "runAfter": {
+                                        "GetLAPSperID": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Compose",
+                                    "inputs": "@replace(base64ToString(body('GetLAPSperID')?['$content']), decodeUriComponent('%EF%BB%BF'), '')"
+                                },
+                                "Filter_array": {
+                                    "runAfter": {
+                                        "DaBinarioaJasonLaps": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Query",
+                                    "inputs": {
+                                        "from": "@json(outputs('DaBinarioAJsonIntervals'))",
+                                        "where": "@equals(item()?['date'], substring(items('For_each')?['date'], 0, 10))"
+                                    }
+                                },
+                                "Compose": {
+                                    "runAfter": {
+                                        "Filter_array": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Compose",
+                                    "inputs": {
+                                        "activity_id": "@{items('For_each')?['id']}",
+                                        "strava_data": "@items('For_each')",
+                                        "intervals_data": "@first(body('Filter_Array'))",
+                                        "laps_data": "@json(outputs('DaBinarioaJasonLaps'))",
+                                        "athlete_profile": "@json(outputs('DaBinarioAJsonAthleteProfile'))"
+                                    }
+                                },
+                                "CreoFileCompleti": {
+                                    "runAfter": {
+                                        "Compose": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "body": "@outputs('Compose')",
+                                        "headers": {
+                                            "ReadFileMetadataFromServer": true
+                                        },
+                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                        "queries": {
+                                            "folderPath": "/aggregator",
+                                            "name": "@{formatDateTime(items('For_each')?['date'], 'yyyyMMdd')}_master_@{items('For_each')?['id']}.json",
+                                            "queryParametersSingleEncoded": true
+                                        }
+                                    },
+                                    "runtimeConfiguration": {
+                                        "contentTransfer": {
+                                            "transferMode": "Chunked"
+                                        }
+                                    }
+                                }
+                            },
+                            "runAfter": {
+                                "Parse_JSON_Strava": [
+                                    "Succeeded"
+                                ],
+                                "DaBinarioAJsonAthleteProfile": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
                         },
                         "CancelloFilreREADY.OK": {
                             "runAfter": {

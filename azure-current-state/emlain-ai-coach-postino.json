@@ -197,6 +197,57 @@
                                 }
                             }
                         },
+                                "HTTP_GetAthleteProfile": {
+            "runAfter": {
+                "Get_Access_Token_Strava": [
+                    "Succeeded"
+                ]
+            },
+            "type": "Http",
+            "inputs": {
+                "uri": "https://www.strava.com/api/v3/athlete",
+                "method": "GET",
+                "headers": {
+                    "Authorization": "Bearer @{body('Get_Access_Token_Strava')?['access_token']}"
+                }
+            },
+            "runtimeConfiguration": {
+                "contentTransfer": {
+                    "transferMode": "Chunked"
+                }
+            }
+        },
+        "Create_blob_AthleteProfile": {
+            "runAfter": {
+                "HTTP_GetAthleteProfile": [
+                    "Succeeded"
+                ]
+            },
+            "type": "ApiConnection",
+            "inputs": {
+                "host": {
+                    "connection": {
+                        "name": "@parameters('$connections')['azureblob']['connectionId']"
+                    }
+                },
+                "method": "post",
+                "body": "@body('HTTP_GetAthleteProfile')",
+                "headers": {
+                    "ReadFileMetadataFromServer": true
+                },
+                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                "queries": {
+                    "folderPath": "/processed-data",
+                    "name": "athlete_profile.json",
+                    "queryParametersSingleEncoded": true
+                }
+            },
+            "runtimeConfiguration": {
+                "contentTransfer": {
+                    "transferMode": "Chunked"
+                }
+            }
+        },
                         "HTTP_Scarica_Dati_Strava": {
                             "runAfter": {
                                 "Get_Access_Token_Strava": [
@@ -1280,16 +1331,25 @@
                             "inputs": {
                                 "from": "@body('Strava_Parse_JSON')",
                                 "select": {
-                                    "id": "@item()?['id']",
-                                    "date": "@item()?['start_date_local']",
-                                    "name": "@item()?['name']",
-                                    "type": "@item()?['sport_type']",
-                                    "distance_km": "@div(item()?['distance'], 1000)",
-                                    "moving_time_min": "@div(item()?['moving_time'], 60)",
-                                    "elevation": "@item()?['total_elevation_gain']",
-                                    "avg_power": "@item()?['average_watts']",
-                                    "avg_hr": "@item()?['average_heartrate']",
-                                    "suffer_score": "@coalesce(item()?['suffer_score'], 0)"
+            "id": "@item()?['id']",
+            "date": "@item()?['start_date_local']",
+            "name": "@item()?['name']",
+            "type": "@item()?['type']",
+            "distance_km": "@div(item()?['distance'], 1000)",
+            "moving_time_min": "@div(item()?['moving_time'], 60)",
+            "elevation": "@item()?['total_elevation_gain']",
+            "avg_power": "@item()?['average_watts']",
+            "avg_hr": "@item()?['average_heartrate']",
+            "suffer_score": "@item()?['suffer_score']",
+            "sport_type": "@item()?['sport_type']",
+            "workout_type": "@item()?['workout_type']",
+            "gear_id": "@item()?['gear_id']",
+            "commute": "@item()?['commute']",
+            "trainer": "@item()?['trainer']",
+            "max_hr": "@item()?['max_heartrate']",
+            "avg_cadence": "@item()?['average_cadence']",
+            "elapsed_time_min": "@div(coalesce(item()?['elapsed_time'], 0), 60)",
+            "start_latlng": "@item()?['start_latlng']"
                                 }
                             }
                         },
