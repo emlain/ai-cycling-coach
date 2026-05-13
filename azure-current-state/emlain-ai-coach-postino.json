@@ -248,6 +248,127 @@
                                 }
                             }
                         },
+                        "For_each_Activity_For_Streams": {
+                            "foreach": "@body('Strava_Parse_JSON')",
+                            "actions": {
+                                "Try_Get_Stream_Blob": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                            }
+                                        },
+                                        "method": "get",
+                                        "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent(concat('/streams/', string(items('For_each_Activity_For_Streams')?['id']), '.json')))}/content",
+                                        "queries": {
+                                            "inferContentType": true
+                                        }
+                                    }
+                                },
+                                "If_Stream_Missing": {
+                                    "actions": {
+                                        "HTTP_Scarica_Stream_Strava": {
+                                            "runAfter": {},
+                                            "type": "Http",
+                                            "inputs": {
+                                                "uri": "@concat('https://www.strava.com/api/v3/activities/', string(items('For_each_Activity_For_Streams')?['id']), '/streams')",
+                                                "method": "GET",
+                                                "headers": {
+                                                    "Authorization": "Bearer @{body('Get_Access_Token_Strava')?['access_token']}"
+                                                },
+                                                "queries": {
+                                                    "keys": "watts,heartrate,time,cadence,distance,altitude,velocity_smooth",
+                                                    "key_by_type": "true"
+                                                }
+                                            },
+                                            "runtimeConfiguration": {
+                                                "contentTransfer": {
+                                                    "transferMode": "Chunked"
+                                                }
+                                            }
+                                        },
+                                        "Create_blob_Stream": {
+                                            "runAfter": {
+                                                "HTTP_Scarica_Stream_Strava": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['azureblob']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "body": "@body('HTTP_Scarica_Stream_Strava')",
+                                                "headers": {
+                                                    "ReadFileMetadataFromServer": true
+                                                },
+                                                "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+                                                "queries": {
+                                                    "folderPath": "/streams",
+                                                    "name": "@concat(string(items('For_each_Activity_For_Streams')?['id']), '.json')",
+                                                    "queryParametersSingleEncoded": true
+                                                }
+                                            },
+                                            "runtimeConfiguration": {
+                                                "contentTransfer": {
+                                                    "transferMode": "Chunked"
+                                                }
+                                            }
+                                        },
+                                        "Delay_Strava_Rate_Limit": {
+                                            "runAfter": {
+                                                "Create_blob_Stream": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "Wait",
+                                            "inputs": {
+                                                "interval": {
+                                                    "count": 2,
+                                                    "unit": "Second"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "runAfter": {
+                                        "Try_Get_Stream_Blob": [
+                                            "Succeeded",
+                                            "Failed"
+                                        ]
+                                    },
+                                    "else": {
+                                        "actions": {}
+                                    },
+                                    "expression": {
+                                        "and": [
+                                            {
+                                                "equals": [
+                                                    "@actions('Try_Get_Stream_Blob')?['status']",
+                                                    "Failed"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "type": "If"
+                                }
+                            },
+                            "runAfter": {
+                                "Strava_Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach",
+                            "runtimeConfiguration": {
+                                "concurrency": {
+                                    "repetitions": 1
+                                }
+                            }
+                        },
                         "HTTP_Scarica_dati_Intervals": {
                             "runAfter": {
                                 "Intervals-Athlete-ID": [
@@ -1534,6 +1655,7 @@
                 },
                 "parameters": {
                     "$connections": {
+                        "type": "Object",
                         "value": {
                             "keyvault-1": {
                                 "id": "/subscriptions/5b1877c3-339d-48f5-9594-b68125cf383b/providers/Microsoft.Web/locations/italynorth/managedApis/keyvault",
