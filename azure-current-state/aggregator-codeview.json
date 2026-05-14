@@ -1,0 +1,407 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": {
+        "defaultValue": {},
+        "type": "Object"
+      }
+    },
+    "triggers": {
+      "When_an_HTTP_request_is_received": {
+        "type": "Request",
+        "kind": "Http"
+      }
+    },
+    "actions": {
+      "LeggoDatiIntervals": {
+        "runAfter": {},
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureblob']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('/processed-data/intervals_lite.json'))}/content",
+          "queries": {
+            "inferContentType": true
+          }
+        }
+      },
+      "DaBinarioAJsonIntervals": {
+        "runAfter": {
+          "LeggoDatiIntervals": [
+            "Succeeded"
+          ]
+        },
+        "type": "Compose",
+        "inputs": "@replace(base64ToString(body('LeggoDatiIntervals')?['$content']), decodeUriComponent('%EF%BB%BF'), '')\n\n\n\n"
+      },
+      "Parse_JSON_Intervals": {
+        "runAfter": {
+          "DaBinarioAJsonIntervals": [
+            "Succeeded"
+          ]
+        },
+        "type": "ParseJson",
+        "inputs": {
+          "content": "@outputs('DaBinarioAJsonIntervals')",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string"
+                },
+                "fitness": {
+                  "type": "number"
+                },
+                "fatigue": {
+                  "type": "number"
+                },
+                "eftp": {
+                  "type": "number"
+                },
+                "pMax": {
+                  "type": "number"
+                },
+                "hrv": {
+                  "type": "number"
+                },
+                "resting_hr": {
+                  "type": "number"
+                },
+                "sleep_score": {
+                  "type": "number"
+                },
+                "sleep_hours": {
+                  "type": "number"
+                },
+                "steps": {
+                  "type": "number"
+                },
+                "readiness": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "date",
+                "fitness",
+                "fatigue",
+                "eftp",
+                "pMax",
+                "hrv",
+                "resting_hr",
+                "sleep_score",
+                "sleep_hours",
+                "steps",
+                "readiness"
+              ]
+            }
+          }
+        }
+      },
+      "LeggoDatiStravaHistory": {
+        "runAfter": {
+          "Parse_JSON_Intervals": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureblob']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('/processed-data/strava_history_lite.json'))}/content",
+          "queries": {
+            "inferContentType": true
+          }
+        }
+      },
+      "DaBinarioaJsonStrava": {
+        "runAfter": {
+          "LeggoDatiStravaHistory": [
+            "Succeeded"
+          ]
+        },
+        "type": "Compose",
+        "inputs": "@replace(base64ToString(body('LeggoDatiStravaHistory')?['$content']), decodeUriComponent('%EF%BB%BF'), '')"
+      },
+      "Parse_JSON_Strava": {
+        "runAfter": {
+          "DaBinarioaJsonStrava": [
+            "Succeeded"
+          ]
+        },
+        "type": "ParseJson",
+        "inputs": {
+          "content": "@outputs('DaBinarioaJsonStrava')",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "number"
+                },
+                "date": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "distance_km": {
+                  "type": "number"
+                },
+                "moving_time_min": {
+                  "type": "number"
+                },
+                "elevation": {
+                  "type": "number"
+                },
+                "avg_power": {
+                  "type": "number"
+                },
+                "avg_hr": {
+                  "type": "number"
+                },
+                "suffer_score": {
+                  "type": "number"
+                },
+                "sport_type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "workout_type": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "gear_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "commute": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "trainer": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "max_hr": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "avg_cadence": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "elapsed_time_min": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "start_latlng": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "LeggoAthleteProfile": {
+        "runAfter": {
+          "DaBinarioaJsonStrava": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureblob']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('/processed-data/athlete_profile.json'))}/content",
+          "queries": {
+            "inferContentType": true
+          }
+        }
+      },
+      "DaBinarioAJsonAthleteProfile": {
+        "runAfter": {
+          "LeggoAthleteProfile": [
+            "Succeeded"
+          ]
+        },
+        "type": "Compose",
+        "inputs": "@replace(base64ToString(body('LeggoAthleteProfile')?['$content']), decodeUriComponent('%EF%BB%BF'), '')"
+      },
+      "For_each": {
+        "foreach": "@body('Parse_JSON_Strava')",
+        "actions": {
+          "GetLAPSperID": {
+            "type": "ApiConnection",
+            "inputs": {
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azureblob']['connectionId']"
+                }
+              },
+              "method": "get",
+              "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('processed-data/laps_',item()?['id'],'.json'))}/content",
+              "queries": {
+                "inferContentType": true
+              }
+            }
+          },
+          "DaBinarioaJasonLaps": {
+            "runAfter": {
+              "GetLAPSperID": [
+                "Succeeded"
+              ]
+            },
+            "type": "Compose",
+            "inputs": "@replace(base64ToString(body('GetLAPSperID')?['$content']), decodeUriComponent('%EF%BB%BF'), '')"
+          },
+          "Filter_array": {
+            "runAfter": {
+              "DaBinarioaJasonLaps": [
+                "Succeeded"
+              ]
+            },
+            "type": "Query",
+            "inputs": {
+              "from": "@json(outputs('DaBinarioAJsonIntervals'))",
+              "where": "@equals(item()?['date'], substring(items('For_each')?['date'], 0, 10))"
+            }
+          },
+          "Compose": {
+            "runAfter": {
+              "Filter_array": [
+                "Succeeded"
+              ]
+            },
+            "type": "Compose",
+            "inputs": {
+              "activity_id": "@{items('For_each')?['id']}",
+              "strava_data": "@items('For_each')",
+              "intervals_data": "@first(body('Filter_Array'))",
+              "laps_data": "@json(outputs('DaBinarioaJasonLaps'))",
+              "athlete_profile": "@json(outputs('DaBinarioAJsonAthleteProfile'))"
+            }
+          },
+          "CreoFileCompleti": {
+            "runAfter": {
+              "Compose": [
+                "Succeeded"
+              ]
+            },
+            "type": "ApiConnection",
+            "inputs": {
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azureblob']['connectionId']"
+                }
+              },
+              "method": "post",
+              "body": "@outputs('Compose')",
+              "headers": {
+                "ReadFileMetadataFromServer": true
+              },
+              "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files",
+              "queries": {
+                "folderPath": "/aggregator",
+                "name": "@{formatDateTime(items('For_each')?['date'], 'yyyyMMdd')}_master_@{items('For_each')?['id']}.json",
+                "queryParametersSingleEncoded": true
+              }
+            },
+            "runtimeConfiguration": {
+              "contentTransfer": {
+                "transferMode": "Chunked"
+              }
+            }
+          }
+        },
+        "runAfter": {
+          "Parse_JSON_Strava": [
+            "Succeeded"
+          ],
+          "DaBinarioAJsonAthleteProfile": [
+            "Succeeded"
+          ]
+        },
+        "type": "Foreach"
+      },
+      "CancelloFilreREADY.OK": {
+        "runAfter": {
+          "For_each": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection",
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureblob']['connectionId']"
+            }
+          },
+          "method": "delete",
+          "headers": {
+            "SkipDeleteIfFileNotFoundOnServer": false
+          },
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('emlainaicoachsa'))}/files/@{encodeURIComponent(encodeURIComponent('/status/Ready.OK'))}"
+        }
+      }
+    },
+    "outputs": {}
+  },
+  "parameters": {
+    "$connections": {
+      "value": {
+        "azureblob": {
+          "id": "/subscriptions/5b1877c3-339d-48f5-9594-b68125cf383b/providers/Microsoft.Web/locations/italynorth/managedApis/azureblob",
+          "connectionId": "/subscriptions/5b1877c3-339d-48f5-9594-b68125cf383b/resourceGroups/emlain-ai-coach/providers/Microsoft.Web/connections/azureblob",
+          "connectionName": "azureblob",
+          "connectionProperties": {
+            "authentication": {
+              "type": "ManagedServiceIdentity"
+            }
+          }
+        }
+      }
+    }
+  }
+}
